@@ -7,11 +7,18 @@ public class GUI extends JFrame {
         this.setTitle("Minesweeper");
         // this.setSize(1286, 829); //Original Vals 1280+6, 800+29
         this.setSize(800, 600);
+        this.setBackground(Color.DARK_GRAY);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
         this.setResizable(false);
-        // this.set
-
+        Board board = new Board();
+        this.setContentPane(board);
     }
 
+    public class Board extends JPanel {
+        public void paintComponent(Graphics g) {
+            g.setColor(Color.red);
+            g.fillRect(0, 0, 80, 80);
+        }
+    }
 }
