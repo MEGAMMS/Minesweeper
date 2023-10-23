@@ -14,6 +14,9 @@ public class GUI extends JFrame {
     public static final int X = 16;
     public static final int Y = 9;
     public static final int SPACING = 4;
+    public static final int BOMB_PERCENT = 10;
+
+    Cell cells[][] = new Cell[X][Y];
 
     public GUI() {
         this.setTitle("Minesweeper");
@@ -23,6 +26,15 @@ public class GUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
         this.setResizable(false);
+        Random rand = new Random();
+        for (int i = 0; i < X; i++) {
+            for (int j = 0; j < Y; j++) {
+                cells[i][j] = new Cell();
+                if (rand.nextInt(100) < BOMB_PERCENT) {
+                    cells[i][j].mine = true;
+                }
+            }
+        }
         Board board = new Board();
         this.setContentPane(board);
         Move move = new Move();
@@ -41,8 +53,14 @@ public class GUI extends JFrame {
                     int recw = GUI.WIDTH - 2 * SPACING;
                     int rech = GUI.HEIGHT - 2 * SPACING;
                     g.setColor(Color.gray);
-                    if (mx >= recx && mx <= recx + recw && my >= recy && my <= recy + rech)
-                        g.setColor(Color.BLACK);
+                    if (cells[i][j].mine) {
+                        g.setColor(Color.RED);
+                    }
+                    if (inCell(i, j))
+                        g.setColor(Color.lightGray);
+                    if (cells[i][j].flagged) {
+                        g.setColor(Color.GREEN);
+                    }
                     g.fillRect(recx, recy, recw, rech);
                 }
             }
@@ -53,16 +71,14 @@ public class GUI extends JFrame {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            // TODO Auto-generated method stub
             System.out.println("Dragged");
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            // System.out.println("Moved");
             mx = e.getX() - 6;
             my = e.getY() - 30;
-            System.out.println(mx + " " + my);
+            // System.out.println(mx + " " + my);
         }
     }
 
@@ -70,34 +86,67 @@ public class GUI extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            // TODO Auto-generated method stub
 
             System.out.println("Clicked");
+            int[] cell = MouseOnCell();
+            if (cell[0] != -1)
+                cells[cell[0]][cell[1]].flagged = true;
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'mousePressed'");
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'mouseReleased'");
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'mouseEntered'");
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'mouseExited'");
         }
+
+    }
+
+    public class Cell {
+        boolean mine;
+        int neighbours;
+        boolean revealed;
+        boolean flagged;
+
+        public Cell() {
+            mine = false;
+            neighbours = 0;
+            revealed = false;
+            flagged = false;
+        }
+    }
+
+    public int[] MouseOnCell() {
+        int[] out = new int[2];
+        out[0] = -1;
+        out[1] = -1;
+        for (int i = 0; i < X; i++) {
+            for (int j = 0; j < Y; j++) {
+                if (inCell(i, j)) {
+                    out[0] = i;
+                    out[1] = j;
+                    return out;
+                }
+            }
+        }
+        return out;
+    }
+
+    public boolean inCell(int i, int j) {
+        int recx = SPACING + i * GUI.WIDTH;
+        int recy = SPACING + (j + 1) * GUI.HEIGHT;
+        int recw = GUI.WIDTH - 2 * SPACING;
+        int rech = GUI.HEIGHT - 2 * SPACING;
+        return mx >= recx && mx <= recx + recw && my >= recy && my <= recy + rech;
 
     }
 }
