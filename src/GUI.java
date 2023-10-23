@@ -9,11 +9,11 @@ public class GUI extends JFrame {
     public int mx = -100;
     public int my = -100;
     // set up
-    public static final int WIDTH = 50;
-    public static final int HEIGHT = 50;
-    public static final int X = 16;
-    public static final int Y = 9;
-    public static final int SPACING = 4;
+    public static final int WIDTH = 30;
+    public static final int HEIGHT = 30;
+    public static final int X = 30;
+    public static final int Y = 20;
+    public static final int SPACING = 2;
     public static final int BOMB_PERCENT = 10;
 
     Cell cells[][] = new Cell[X][Y];
@@ -35,6 +35,7 @@ public class GUI extends JFrame {
                 }
             }
         }
+        countNeighbours();
         Board board = new Board();
         this.setContentPane(board);
         Move move = new Move();
@@ -56,12 +57,23 @@ public class GUI extends JFrame {
                     if (cells[i][j].mine) {
                         g.setColor(Color.RED);
                     }
-                    if (inCell(i, j))
+                    if (cells[i][j].revealed) {
                         g.setColor(Color.lightGray);
-                    if (cells[i][j].flagged) {
-                        g.setColor(Color.GREEN);
+                    }
+                    if (inCell(i, j)) {
+                        g.setColor(Color.lightGray);
                     }
                     g.fillRect(recx, recy, recw, rech);
+                    if (cells[i][j].revealed) {
+                        if (cells[i][j].neighbours == 0)
+                            continue;
+
+                        // g.setColor(ColorOfNum(cells[i][j].neighbours));
+                        g.setColor(Color.black);
+                        g.setFont(new Font("Tahoma", Font.BOLD, (GUI.HEIGHT * 3) / 5));
+                        g.drawString(Integer.toString(cells[i][j].neighbours), recx + GUI.WIDTH / 5,
+                                recy + (31 * GUI.HEIGHT) / 50);
+                    }
                 }
             }
         }
@@ -88,9 +100,13 @@ public class GUI extends JFrame {
         public void mouseClicked(MouseEvent e) {
 
             System.out.println("Clicked");
-            int[] cell = MouseOnCell();
-            if (cell[0] != -1)
-                cells[cell[0]][cell[1]].flagged = true;
+            Pair point = MouseOnCell();
+            if (point.x != -1) {
+                reveal(point);
+                System.out.println(cells[point.x][point.y].neighbours);
+
+            }
+
         }
 
         @Override
@@ -125,15 +141,13 @@ public class GUI extends JFrame {
         }
     }
 
-    public int[] MouseOnCell() {
-        int[] out = new int[2];
-        out[0] = -1;
-        out[1] = -1;
+    public Pair MouseOnCell() {
+        Pair out = new Pair(-1, -1);
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
                 if (inCell(i, j)) {
-                    out[0] = i;
-                    out[1] = j;
+                    out.x = i;
+                    out.y = j;
                     return out;
                 }
             }
@@ -148,5 +162,79 @@ public class GUI extends JFrame {
         int rech = GUI.HEIGHT - 2 * SPACING;
         return mx >= recx && mx <= recx + recw && my >= recy && my <= recy + rech;
 
+    }
+
+    public void countNeighbours() {
+        int[] d = { 0, 1, -1 };
+        for (int i = 0; i < X; i++) {
+            for (int j = 0; j < Y; j++) {
+                int n = 0;
+                for (int k = 0; k < 3; k++) {
+                    for (int l = 0; l < 3; l++) {
+                        if (l == 0 && k == 0)
+                            continue;
+                        int nx = i + d[k];
+                        int ny = j + d[l];
+                        if (nx < 0 || ny < 0 || nx >= X || ny >= Y)
+                            continue;
+                        n += cells[i + d[k]][j + d[l]].mine ? 1 : 0;
+                    }
+                }
+                cells[i][j].neighbours = n;
+            }
+        }
+    }
+
+    public void reveal(Pair cell) {
+        if (cells[cell.x][cell.y].revealed || cells[cell.x][cell.y].mine)
+            return;
+        cells[cell.x][cell.y].revealed = true;
+        if (cells[cell.x][cell.y].neighbours != 0)
+            return;
+        int[] d = { 0, 1, -1 };
+        for (int k = 0; k < 3; k++) {
+            for (int l = 0; l < 3; l++) {
+                if (l == 0 && k == 0)
+                    continue;
+                int nx = cell.x + d[k];
+                int ny = cell.y + d[l];
+                if (nx < 0 || ny < 0 || nx >= X || ny >= Y)
+                    continue;
+                reveal(new Pair(nx, ny));
+            }
+        }
+        return;
+    }
+
+    public Color ColorOfNum(int num) {
+        switch (num) {
+            case 1:
+                return Color.blue;
+            case 2:
+                return Color.green;
+            case 3:
+                return Color.red;
+            case 4:
+                return Color.magenta;
+            case 5:
+                return Color.orange;
+            case 6:
+                return Color.YELLOW;
+            case 7:
+                return Color.cyan;
+            case 8:
+                return Color.BLACK;
+        }
+        return Color.black;
+    }
+
+    public class Pair {
+        int x = 0;
+        int y = 0;
+
+        public Pair(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
     }
 }
