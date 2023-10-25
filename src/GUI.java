@@ -9,10 +9,10 @@ public class GUI extends JFrame {
     public int mx = -100;
     public int my = -100;
     // set up
-    public static final int WIDTH = 30;
-    public static final int HEIGHT = 30;
-    public static final int X = 30;
-    public static final int Y = 20;
+    public static final int WIDTH = 50;
+    public static final int HEIGHT = 50;
+    public static final int X = 16;
+    public static final int Y = 9;
     public static final int SPACING = 2;
     public static final int BOMB_PERCENT = 10;
     Image flag, bomb;
@@ -52,35 +52,49 @@ public class GUI extends JFrame {
         public void paintComponent(Graphics g) {
             for (int i = 0; i < X; i++) {
                 for (int j = 0; j < Y; j++) {
+                    Cell cell = cells[i][j];
                     int recx = SPACING + i * GUI.WIDTH;
                     int recy = SPACING + (j + 1) * GUI.HEIGHT;
                     int recw = GUI.WIDTH - 2 * SPACING;
                     int rech = GUI.HEIGHT - 2 * SPACING;
-                    g.setColor(Color.gray);
-                    if (cells[i][j].mine) {
-                        g.setColor(Color.RED);
-                    }
-                    if (cells[i][j].revealed) {
+                    g.setColor(Color.black);
+                    if (cell.revealed) {
                         g.setColor(Color.lightGray);
                     }
                     if (inCell(i, j)) {
                         g.setColor(Color.lightGray);
                     }
+                    if (cell.mine && cell.revealed) {
+                        g.setColor(Color.RED);
+                    }
                     g.fillRect(recx, recy, recw, rech);
-                    if (cells[i][j].revealed) {
-                        if (cells[i][j].neighbours == 0)
-                            continue;
+                    g.drawImage(flag, 0, 0, null);
+                    paintImage(g, cell, recx, recy);
+                    paintTheNumber(g, cell, recx, recy);
 
-                        // g.setColor(ColorOfNum(cells[i][j].neighbours));
-                        g.setColor(Color.black);
-                        g.setFont(new Font("Tahoma", Font.BOLD, (GUI.HEIGHT * 3) / 5));
-                        g.drawString(Integer.toString(cells[i][j].neighbours), recx + GUI.WIDTH / 5,
-                                recy + (31 * GUI.HEIGHT) / 50);
-                    }
-                    if (cells[i][j].mine) {
-                        g.drawImage(bomb, recx, recy, null);
-                    }
                 }
+            }
+        }
+
+        private void paintImage(Graphics g, GUI.Cell cell, int recx, int recy) {
+            if (cell.flagged) {
+                g.drawImage(flag, recx + (GUI.WIDTH * 1) / 10, recy + (GUI.HEIGHT * 1) / 10, null);
+            }
+            if (cell.mine && cell.revealed) {
+                g.drawImage(bomb, recx + (GUI.WIDTH * 1) / 20, recy + (GUI.HEIGHT * 1) / 20, null);
+            }
+        }
+
+        private void paintTheNumber(Graphics g, GUI.Cell cell, int recx, int recy) {
+            if (cell.revealed) {
+                if (cell.neighbours == 0 || cell.mine)
+                    return;
+
+                g.setColor(ColorOfNum(cell.neighbours));
+                // g.setColor(Color.black);
+                g.setFont(new Font("Tahoma", Font.BOLD, (GUI.HEIGHT * 3) / 5));
+                g.drawString(Integer.toString(cell.neighbours), recx + GUI.WIDTH / 5,
+                        recy + (31 * GUI.HEIGHT) / 50);
             }
         }
     }
@@ -107,10 +121,21 @@ public class GUI extends JFrame {
 
             System.out.println("Clicked");
             Pair point = MouseOnCell();
-            if (point.x != -1) {
+            if (point.x == -1)
+                return;
+            Cell cell = cells[point.x][point.y];
+            if (SwingUtilities.isLeftMouseButton(e)) {
                 reveal(point);
-                System.out.println(cells[point.x][point.y].neighbours);
-
+                System.out.println(cell.neighbours);
+            }
+            if (SwingUtilities.isRightMouseButton(e)) {
+                if (cell.flagged) {
+                    cell.flagged = false;
+                    return;
+                }
+                if (cell.revealed)
+                    return;
+                cell.flagged = true;
             }
 
         }
@@ -191,19 +216,23 @@ public class GUI extends JFrame {
         }
     }
 
-    public void reveal(Pair cell) {
-        if (cells[cell.x][cell.y].revealed || cells[cell.x][cell.y].mine)
+    public void reveal(Pair point) {
+        Cell cell = cells[point.x][point.y];
+        if (cell.revealed || cell.flagged)
             return;
-        cells[cell.x][cell.y].revealed = true;
-        if (cells[cell.x][cell.y].neighbours != 0)
+        cell.revealed = true;
+        if (cell.mine) {
+            return;
+        }
+        if (cell.neighbours != 0)
             return;
         int[] d = { 0, 1, -1 };
         for (int k = 0; k < 3; k++) {
             for (int l = 0; l < 3; l++) {
                 if (l == 0 && k == 0)
                     continue;
-                int nx = cell.x + d[k];
-                int ny = cell.y + d[l];
+                int nx = point.x + d[k];
+                int ny = point.y + d[l];
                 if (nx < 0 || ny < 0 || nx >= X || ny >= Y)
                     continue;
                 reveal(new Pair(nx, ny));
@@ -214,9 +243,9 @@ public class GUI extends JFrame {
 
     void getImages() {
         flag = new ImageIcon("src\\Images\\red-flag.png").getImage();
-        flag = flag.getScaledInstance((WIDTH * 9 / 10), (HEIGHT * 9 / 10), Image.SCALE_SMOOTH);
+        flag = flag.getScaledInstance((WIDTH * 8 / 10), (HEIGHT * 8 / 10), Image.SCALE_SMOOTH);
         bomb = new ImageIcon("src\\Images\\Bomb.png").getImage();
-        bomb = bomb.getScaledInstance((WIDTH * 9 / 10), (HEIGHT * 9 / 10), Image.SCALE_SMOOTH);
+        bomb = bomb.getScaledInstance((WIDTH * 8 / 10), (HEIGHT * 8 / 10), Image.SCALE_SMOOTH);
     }
 
     public Color ColorOfNum(int num) {
