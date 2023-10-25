@@ -15,7 +15,7 @@ public class GUI extends JFrame {
     public static final int Y = 20;
     public static final int SPACING = 2;
     public static final int BOMB_PERCENT = 10;
-
+    Image flag, bomb;
     Cell cells[][] = new Cell[X][Y];
 
     public GUI() {
@@ -23,15 +23,16 @@ public class GUI extends JFrame {
         // this.setSize(1286, 829); //Original Vals 1280+6, 800+29
         this.setSize(X * WIDTH + 13, (Y + 1) * HEIGHT + 37);
         this.setBackground(Color.DARK_GRAY);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setVisible(true);
         this.setResizable(false);
+        getImages();
         Random rand = new Random();
+
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
                 cells[i][j] = new Cell();
                 if (rand.nextInt(100) < BOMB_PERCENT) {
                     cells[i][j].mine = true;
+
                 }
             }
         }
@@ -43,6 +44,8 @@ public class GUI extends JFrame {
         Click click = new Click();
         this.addMouseListener(click);
 
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
 
     public class Board extends JPanel {
@@ -73,6 +76,9 @@ public class GUI extends JFrame {
                         g.setFont(new Font("Tahoma", Font.BOLD, (GUI.HEIGHT * 3) / 5));
                         g.drawString(Integer.toString(cells[i][j].neighbours), recx + GUI.WIDTH / 5,
                                 recy + (31 * GUI.HEIGHT) / 50);
+                    }
+                    if (cells[i][j].mine) {
+                        g.drawImage(bomb, recx, recy, null);
                     }
                 }
             }
@@ -204,6 +210,13 @@ public class GUI extends JFrame {
             }
         }
         return;
+    }
+
+    void getImages() {
+        flag = new ImageIcon("src\\Images\\red-flag.png").getImage();
+        flag = flag.getScaledInstance((WIDTH * 9 / 10), (HEIGHT * 9 / 10), Image.SCALE_SMOOTH);
+        bomb = new ImageIcon("src\\Images\\Bomb.png").getImage();
+        bomb = bomb.getScaledInstance((WIDTH * 9 / 10), (HEIGHT * 9 / 10), Image.SCALE_SMOOTH);
     }
 
     public Color ColorOfNum(int num) {

@@ -7,7 +7,6 @@ public class App implements Runnable{
 
     @Override
     public void run() {
-        // TODO Auto-generated method stub
         while(true){
             gui.repaint();
         }
