@@ -20,13 +20,12 @@ public class GUI extends JFrame {
 
     public GUI() {
         this.setTitle("Minesweeper");
-        // this.setSize(1286, 829); //Original Vals 1280+6, 800+29
         this.setSize(X * WIDTH + 13, (Y + 1) * HEIGHT + 37);
         this.setBackground(Color.DARK_GRAY);
         this.setResizable(false);
         getImages();
-        Random rand = new Random();
 
+        Random rand = new Random();
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
                 cells[i][j] = new Cell();
@@ -45,6 +44,7 @@ public class GUI extends JFrame {
         this.addMouseListener(click);
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         this.setVisible(true);
     }
 
@@ -103,30 +103,30 @@ public class GUI extends JFrame {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            System.out.println("Dragged");
+            mx = e.getX() - 6;
+            my = e.getY() - 30;
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
             mx = e.getX() - 6;
             my = e.getY() - 30;
-            // System.out.println(mx + " " + my);
         }
     }
 
     public class Click implements MouseListener {
+        Pair point = new Pair(-1, -1);
 
         @Override
         public void mouseClicked(MouseEvent e) {
+        }
 
-            System.out.println("Clicked");
-            Pair point = MouseOnCell();
-            if (point.x == -1)
-                return;
-            Cell cell = cells[point.x][point.y];
+        private void cellClicked(MouseEvent e, GUI.Cell cell) {
             if (SwingUtilities.isLeftMouseButton(e)) {
-                reveal(point);
-                System.out.println(cell.neighbours);
+                reveal(this.point);
+                if(countFlaggedNeighbours(point) == cells[point.x][point.y].neighbours){
+                    revealNeighbours(point);
+                }
             }
             if (SwingUtilities.isRightMouseButton(e)) {
                 if (cell.flagged) {
@@ -137,15 +137,24 @@ public class GUI extends JFrame {
                     return;
                 cell.flagged = true;
             }
-
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
+            Pair now = MouseOnCell();
+            if (now.x == -1)
+                return;
+            this.point = now;
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            Pair now = MouseOnCell();
+            if (now.x == -1)
+                return;
+            if (now.equals(this.point)) {
+                cellClicked(e, cells[this.point.x][this.point.y]);
+            }
         }
 
         @Override
@@ -226,6 +235,29 @@ public class GUI extends JFrame {
         }
         if (cell.neighbours != 0)
             return;
+
+        revealNeighbours(point);
+
+    }
+
+    private int countFlaggedNeighbours(Pair point) {
+        int n = 0;
+        int[] d = { 0, 1, -1 };
+        for (int k = 0; k < 3; k++) {
+            for (int l = 0; l < 3; l++) {
+                if (l == 0 && k == 0)
+                    continue;
+                int nx = point.x + d[k];
+                int ny = point.y + d[l];
+                if (nx < 0 || ny < 0 || nx >= X || ny >= Y)
+                    continue;
+                n += cells[nx][ny].flagged ? 1 : 0;
+            }
+        }
+        return n;
+    }
+
+    private void revealNeighbours(GUI.Pair point) {
         int[] d = { 0, 1, -1 };
         for (int k = 0; k < 3; k++) {
             for (int l = 0; l < 3; l++) {
@@ -238,7 +270,6 @@ public class GUI extends JFrame {
                 reveal(new Pair(nx, ny));
             }
         }
-        return;
     }
 
     void getImages() {
@@ -278,5 +309,15 @@ public class GUI extends JFrame {
             this.x = x;
             this.y = y;
         }
+
+        @Override
+        public String toString() {
+            return this.x + " " + this.y;
+        }
+        @Override
+        public boolean equals(Object object2) {
+            return object2 instanceof Pair && x == (((Pair)object2).x) && y == (((Pair)object2).y);
+        }
+
     }
 }
