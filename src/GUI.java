@@ -16,6 +16,7 @@ public class GUI extends JFrame {
     public static final int SPACING = 2;
     public static final int BOMB_PERCENT = 10;
     Image flag, bomb;
+    boolean win,lose;
     Cell cells[][] = new Cell[X][Y];
 
     public GUI() {
@@ -24,7 +25,7 @@ public class GUI extends JFrame {
         this.setBackground(Color.decode("#27374D"));
         this.setResizable(false);
         getImages();
-
+        win = lose = false;
         Random rand = new Random();
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
@@ -125,7 +126,7 @@ public class GUI extends JFrame {
         private void cellClicked(MouseEvent e, GUI.Cell cell) {
             if (SwingUtilities.isLeftMouseButton(e)) {
                 reveal(this.point);
-                if (countFlaggedNeighbours(point) == cells[point.x][point.y].neighbours) {
+                if (countFlaggedNeighbours(point) == cell.neighbours && !cell.flagged && !cell.mine) {
                     revealNeighbours(point);
                 }
             }
