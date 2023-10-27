@@ -21,7 +21,7 @@ public class GUI extends JFrame {
     public GUI() {
         this.setTitle("Minesweeper");
         this.setSize(X * WIDTH + 13, (Y + 1) * HEIGHT + 37);
-        this.setBackground(Color.DARK_GRAY);
+        this.setBackground(Color.decode("#27374D"));
         this.setResizable(false);
         getImages();
 
@@ -57,7 +57,8 @@ public class GUI extends JFrame {
                     int recy = SPACING + (j + 1) * GUI.HEIGHT;
                     int recw = GUI.WIDTH - 2 * SPACING;
                     int rech = GUI.HEIGHT - 2 * SPACING;
-                    g.setColor(Color.black);
+                    g.setColor(Color.decode("#526D82"));
+
                     if (cell.revealed) {
                         g.setColor(Color.lightGray);
                     }
@@ -124,7 +125,7 @@ public class GUI extends JFrame {
         private void cellClicked(MouseEvent e, GUI.Cell cell) {
             if (SwingUtilities.isLeftMouseButton(e)) {
                 reveal(this.point);
-                if(countFlaggedNeighbours(point) == cells[point.x][point.y].neighbours){
+                if (countFlaggedNeighbours(point) == cells[point.x][point.y].neighbours) {
                     revealNeighbours(point);
                 }
             }
@@ -282,13 +283,13 @@ public class GUI extends JFrame {
     public Color ColorOfNum(int num) {
         switch (num) {
             case 1:
-                return Color.blue;
+                return Color.decode("#1976d2");
             case 2:
-                return Color.green;
+                return Color.decode("#388e3c");
             case 3:
-                return Color.red;
+                return Color.decode("#d32f2f");
             case 4:
-                return Color.magenta;
+                return Color.decode("#7b1fa2");
             case 5:
                 return Color.orange;
             case 6:
@@ -314,9 +315,10 @@ public class GUI extends JFrame {
         public String toString() {
             return this.x + " " + this.y;
         }
+
         @Override
         public boolean equals(Object object2) {
-            return object2 instanceof Pair && x == (((Pair)object2).x) && y == (((Pair)object2).y);
+            return object2 instanceof Pair && x == (((Pair) object2).x) && y == (((Pair) object2).y);
         }
 
     }
