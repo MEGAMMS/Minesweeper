@@ -14,9 +14,9 @@ public class GUI extends JFrame {
     public static final int X = 16;
     public static final int Y = 9;
     public static final int SPACING = 2;
-    public static final int BOMB_PERCENT = 10;
+    public static final int BOMB_PERCENT = 14;
     Image flag, bomb;
-    boolean win,lose;
+    boolean win, lose, stop;
     Cell cells[][] = new Cell[X][Y];
 
     public GUI() {
@@ -25,7 +25,7 @@ public class GUI extends JFrame {
         this.setBackground(Color.decode("#27374D"));
         this.setResizable(false);
         getImages();
-        win = lose = false;
+        win = lose = stop = false;
         Random rand = new Random();
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
@@ -43,7 +43,6 @@ public class GUI extends JFrame {
         this.addMouseMotionListener(move);
         Click click = new Click();
         this.addMouseListener(click);
-
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setVisible(true);
@@ -56,26 +55,27 @@ public class GUI extends JFrame {
                     Cell cell = cells[i][j];
                     int recx = SPACING + i * GUI.WIDTH;
                     int recy = SPACING + (j + 1) * GUI.HEIGHT;
-                    int recw = GUI.WIDTH - 2 * SPACING;
-                    int rech = GUI.HEIGHT - 2 * SPACING;
-                    g.setColor(Color.decode("#526D82"));
-
-                    if (cell.revealed) {
-                        g.setColor(Color.lightGray);
-                    }
-                    if (inCell(i, j)) {
-                        g.setColor(Color.lightGray);
-                    }
-                    if (cell.mine && cell.revealed) {
-                        g.setColor(Color.RED);
-                    }
-                    g.fillRect(recx, recy, recw, rech);
-                    g.drawImage(flag, 0, 0, null);
+                    Pair point = new Pair(i, j);
+                    paintTheCells(g, cell, recx, recy, point);
                     paintImage(g, cell, recx, recy);
                     paintTheNumber(g, cell, recx, recy);
-
+                    paintTheWinning(g);
                 }
             }
+        }
+
+        private void paintTheCells(Graphics g, GUI.Cell cell, int recx, int recy, Pair point) {
+            g.setColor(Color.decode("#526D82"));
+            if (cell.revealed) {
+                g.setColor(Color.lightGray);
+            }
+            if (inCell(point)) {
+                g.setColor(Color.lightGray);
+            }
+            if (cell.mine && cell.revealed) {
+                g.setColor(Color.RED);
+            }
+            g.fillRect(recx, recy, GUI.WIDTH - 2 * SPACING, GUI.HEIGHT - 2 * SPACING);
         }
 
         private void paintImage(Graphics g, GUI.Cell cell, int recx, int recy) {
@@ -99,18 +99,54 @@ public class GUI extends JFrame {
                         recy + (31 * GUI.HEIGHT) / 50);
             }
         }
+
+        private void paintTheWinning(Graphics g) {
+            if (checkWin())
+                win = true;
+            if (lose || win)
+                stop = true;
+
+            g.setFont(new Font("Tahoma", Font.BOLD, (GUI.HEIGHT * 3) / 5));
+            if (lose) {
+                g.setColor(Color.red);
+                g.drawString("Game Over!", (X / 2 - 2) * (GUI.WIDTH), (GUI.HEIGHT * 4) / 5);
+            }
+            if (win) {
+                g.setColor(Color.green);
+                g.drawString("You Won!", (X / 2 - 2) * (GUI.WIDTH), (GUI.HEIGHT * 4) / 5);
+            }
+        }
+
+        private boolean checkWin() {
+            int revealed, mine;
+            revealed = mine = 0;
+            for (int i = 0; i < X; i++)
+                for (int j = 0; j < Y; j++) {
+                    if (cells[i][j].revealed)
+                        revealed++;
+                    if (cells[i][j].mine)
+                        mine++;
+                }
+            if (revealed + mine == X * Y)
+                return true;
+            return false;
+        }
     }
 
     public class Move implements MouseMotionListener {
 
         @Override
         public void mouseDragged(MouseEvent e) {
+            if (stop)
+                return;
             mx = e.getX() - 6;
             my = e.getY() - 30;
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
+            if (stop)
+                return;
             mx = e.getX() - 6;
             my = e.getY() - 30;
         }
@@ -184,22 +220,20 @@ public class GUI extends JFrame {
     }
 
     public Pair MouseOnCell() {
-        Pair out = new Pair(-1, -1);
         for (int i = 0; i < X; i++) {
             for (int j = 0; j < Y; j++) {
-                if (inCell(i, j)) {
-                    out.x = i;
-                    out.y = j;
+                Pair out = new Pair(i, j);
+                if (inCell(out)) {
                     return out;
                 }
             }
         }
-        return out;
+        return new Pair(-1, -1);
     }
 
-    public boolean inCell(int i, int j) {
-        int recx = SPACING + i * GUI.WIDTH;
-        int recy = SPACING + (j + 1) * GUI.HEIGHT;
+    public boolean inCell(Pair point) {
+        int recx = SPACING + point.x * GUI.WIDTH;
+        int recy = SPACING + (point.y + 1) * GUI.HEIGHT;
         int recw = GUI.WIDTH - 2 * SPACING;
         int rech = GUI.HEIGHT - 2 * SPACING;
         return mx >= recx && mx <= recx + recw && my >= recy && my <= recy + rech;
@@ -233,6 +267,7 @@ public class GUI extends JFrame {
             return;
         cell.revealed = true;
         if (cell.mine) {
+            lose = true;
             return;
         }
         if (cell.neighbours != 0)
